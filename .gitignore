@@ -1,0 +1,7 @@
+*.iml
+*.ipr
+*.iws
+.idea/
+__pycache__/
+*.sqlite
+*.log
