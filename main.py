@@ -1,4 +1,6 @@
+import logging
 import random
+import sys
 import time
 
 from selenium.common import NoSuchElementException
@@ -35,8 +37,7 @@ def scroll_to_bottom(driver: WebDriver):
             pass
 
 
-def collate_bookmarks(driver: InspectRequestsMixin) -> None:
-    db = DatabaseConnection()
+def collate_bookmarks(db: DatabaseConnection, driver: InspectRequestsMixin) -> None:
     for request in driver.requests:
         if "Bookmarks?variables=" in request.url and request.response:
             unparsed_tweets = decode_json_response(request.response)
@@ -49,6 +50,7 @@ def bookmarks_element(driver):
 
 
 def main():
+    db = DatabaseConnection()
     driver = webdriver.Firefox()
     driver.get("https://www.twitter.com")
 
@@ -57,7 +59,7 @@ def main():
     bookmarks_element(driver).click()
     time.sleep(20)
     scroll_to_bottom(driver)
-    collate_bookmarks(driver)
+    collate_bookmarks(db, driver)
 
 
 if __name__ == '__main__':

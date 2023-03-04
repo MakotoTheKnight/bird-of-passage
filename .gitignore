@@ -3,5 +3,6 @@
 *.iws
 .idea/
 __pycache__/
-*.sqlite
+*.sqlite*
 *.log
+api_calls.py

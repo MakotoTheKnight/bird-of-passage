@@ -1,10 +1,18 @@
 import sqlite3
 from sqlite3 import Cursor
 
+from yoyo import get_backend
+from yoyo import read_migrations
+
 
 class DatabaseConnection:
     def __init__(self, db_name="bop.sqlite"):
         self.db = sqlite3.connect(db_name, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+        backend = get_backend("sqlite:///{}".format(db_name))
+        migrations = read_migrations("migrations")
+
+        with backend.lock():
+            backend.apply_migrations(backend.to_apply(migrations))
 
     def insert_into_database(self, collated_data: list) -> None:
         cursor = self.db.cursor()
@@ -44,5 +52,15 @@ class DatabaseConnection:
             expanded_video_data)
 
         cursor.execute(
-            "insert into tweet_body(tweet_body, author_display_name, tweet_data_id, created_date) values (?, ?, ?, ?)  on conflict do nothing",
+            "insert into tweet_body(tweet_data_id, author_display_name, tweet_body, created_date) values (?, ?, ?, ?)  on conflict do nothing",
             (record["unique_id"], record["display_name"], record["text_body"], record["created_date"]))
+
+    def get_authors(self):
+        cursor = self.db.cursor()
+        result = cursor.execute("select display_name from author")
+        return [r[0] for r in result.fetchall()]
+
+    def get_urls_and_authors(self):
+        cursor = self.db.cursor()
+        result = cursor.execute("select author_display_name, media_url from tweet_media")
+        return [(r[0], r[1]) for r in result.fetchall()]
